@@ -1,0 +1,29 @@
+language: generic
+
+services:
+  - docker
+
+env:
+  global:
+    - PHANTOMJS_VERION=2.1.1
+    - PHANTOMJS_BINARY=phantomjs-$PHANTOMJS_VERION-Linux-x86_64
+
+script:
+  - docker build -t easypi/phantomjs:$PHANTOMJS_VERION .
+  - docker run --rm -v $PWD:/data --entrypoint cp easypi/phantomjs:$PHANTOMJS_VERION /usr/local/bin/phantomjs /data
+  - mv phantomjs $PHANTOMJS_BINARY
+
+after_success:
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - docker tag easypi/phantomjs:$PHANTOMJS_VERION easypi/phantomjs:latest
+  - docker push easypi/phantomjs:$PHANTOMJS_VERION
+  - docker push easypi/phantomjs:latest
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "g6v45RRXUDDT59o65QgGadJj3bBTArVxf2ZN7KRhl/I7jc/Zo+f+Nlp7N85hO44yiCR7M0ESoC/zusmC+VQ9Hd6uBCOR6iPeHxEvKfybKq5FB3Zo77AZuWuQyl3b5/OO8jFT1AJGOnEt2oIY8c+F6ab+eJkqDiD59Ei5W3ac8rzPYpPATp3WzE8FIiGqvraBHydj/IxrP13QRpLIJ6wPlNyfFwX/TW8ROLyy+g+hbK9Z+Jhs3mUSB7KbGwmNnb75kP19zW9bUTAGhyWR4xckv5IGdb7c0uSYPtfrM7IuDPa1VSOjU/mdEB9pAQciVV5+yYPcA3cp9AlZTcS5qgIGVxH0y3SBCGZjsWF69CNQfJ7a7iKoltMBzDKiqbzALn8bMZWCOLrzLMCswslULbWIZv/qhyz/Bv2qWqUMfp0jkyAQgDt6DcrSihpCMGMhLAbiLGwqzyiyzKNbfSNAY6ncrCLn3eTT+bNwV/C7kV2m5pnwK9QbvYp7JZq7n4t70r3eFZMEUIMWGPZ4L82njIjCezxpIOuHSURAsKEUvik3zFH/1Ukup25OR5TjdlCfwE2n5+2Sbf/p5bjb48aQwTswEaxm7fLMVGBb3aCUJSs92x/mpzULBYFSQ0mdVq48qCAiSfdCsCweZdXJZirMDXxxWhLXp8fbJC3LcdqyR/mDLBk="
+  file: $PHANTOMJS_BINARY
+  skip_cleanup: true
+  on:
+    tags: true
